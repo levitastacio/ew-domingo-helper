@@ -178,18 +178,19 @@ export default function App() {
     )
   }
 
-  const sunday = getSundayOfWeek(todayDate)
-  const todayAssignment = weeklyAssignments.find(a =>
-    new Date(a.week_date).toDateString() === sunday.toDateString() &&
-    a.person_name === currentUser
-  )
+  const userAssignments = weeklyAssignments.filter(a => a.person_name === currentUser)
 
-  const nextSunday = new Date(todayDate)
-  nextSunday.setDate(nextSunday.getDate() + 7)
-  const nextAssignment = weeklyAssignments.find(a =>
-    new Date(a.week_date).toDateString() === getSundayOfWeek(nextSunday).toDateString() &&
-    a.person_name === currentUser
-  )
+  const todayAssignment = userAssignments.find(a => {
+    const assignDate = new Date(a.week_date)
+    const today = new Date(todayDate)
+    return assignDate.toDateString() === today.toDateString()
+  })
+
+  const nextAssignment = userAssignments.find(a => {
+    const assignDate = new Date(a.week_date)
+    const today = new Date(todayDate)
+    return assignDate > today
+  })
 
   const contentAssign = contentAssignments.filter(a => a.person_name === currentUser)
 
