@@ -15,4 +15,4 @@ const app = initializeApp(firebaseConfig)
 export const database = getDatabase(app)
 export const storage = getStorage(app)
 
-console.log('[firebase.js] ✓ Firebase initialized')
+console.log('[firebase.js] ✓ Firebase initialized with Realtime Database')
