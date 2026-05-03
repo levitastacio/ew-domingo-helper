@@ -125,10 +125,12 @@ export default function App() {
         contentAssignments={contentAssignments}
         onAddAssignment={async (data) => {
           try {
-            await push(ref(database, 'weekly_assignments'), data)
-            console.log('Assignment saved successfully')
+            console.log('[Firebase] Saving assignment:', data)
+            const result = await push(ref(database, 'weekly_assignments'), data)
+            console.log('[Firebase] Assignment saved successfully:', result.key)
+            alert('✓ Horario guardado correctamente')
           } catch (err) {
-            console.error('Exception:', err)
+            console.error('[Firebase] Error saving assignment:', err)
             alert('Error: ' + err.message)
           }
         }}
