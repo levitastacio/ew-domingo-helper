@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import { supabase } from './supabase'
 
+if (typeof window !== 'undefined') {
+  console.log('[App] Supabase client initialized')
+}
+
 const USERS = ['Gabriela', 'Christopher', 'Magdy', 'Elena', 'Maryori', 'Rosanny', 'Saul', 'Jason', 'Levit']
 const GABRIELA_PASSWORD = '123'
 
