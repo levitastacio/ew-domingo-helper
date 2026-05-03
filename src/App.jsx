@@ -1,884 +1,598 @@
-import { useState, useEffect } from 'react';
-import './App.css';
-import { supabase } from './supabase';
+import { useState, useEffect } from 'react'
+import './App.css'
+import { supabase } from './supabase'
 
-const AnimatedIcon = ({ emoji, delay = 0 }) => (
-  <span className="animated-icon" style={{ '--delay': `${delay}ms` }}>
-    {emoji}
-  </span>
-);
+const USERS = ['Gabriela', 'Christopher', 'Magdy', 'Elena', 'Maryori', 'Rosanny', 'Saul', 'Jason', 'Levit']
+const GABRIELA_PASSWORD = '123'
 
-const INITIAL_SONGS = [
-  {
-    id: 1,
-    title: 'Grandes Cosas',
-    author: 'Frances Jane Crosby',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Grandes cosas ha hecho el Señor', 'por su pueblo fiel', 'alabemos su nombre', 'con gozo y amor'] },
-      { name: 'CORO', lines: ['Grandes cosas hizo', 'grande es su poder', 'y su gloria eterna', 'vamos a creer'] }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Santo Santo Santo',
-    author: 'Reginald Heber',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Santo, santo, santo es el Señor', 'Dios de poder y majestad', 'Es santo en la tierra, cielo y mar', 'Toda la creación alaba su verdad'] },
-      { name: 'CORO', lines: ['Santo, santo, santo es el Rey', 'Levantemos la voz en adoración', 'Su reino es eterno, su amor sin fin', 'Cantemos con toda devoción'] }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Cuán Grande Es Él',
-    author: 'Stuart K. Hine',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Cuando contemplo el cielo azul', 'y sus estrellas mil', 'la obra de tus manos divinas', 'me hace sentir tan pequeño así'] },
-      { name: 'CORO', lines: ['¡Cuán grande eres, cuán grande eres!', '¡Cuán grande es tu majestad!', 'Cuando considero el universo', 'solo debo adorar y cantar'] }
-    ]
-  },
-  {
-    id: 4,
-    title: 'Al Mundo Paz',
-    author: 'Isaac Watts',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Al mundo paz ha nacido Jesús', 'el Rey celestial', 'con amor infinito vino a salvarnos', 'su gracia es sin igual'] },
-      { name: 'CORO', lines: ['Paz, paz, paz al mundo entero', 'Jesús es nuestro Salvador', 'regocijémonos en su gloria', 'eternamente sea su honor'] }
-    ]
-  },
-  {
-    id: 5,
-    title: 'Oh Cuán Bueno Es El Señor',
-    author: '',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Oh cuán bueno es el Señor', 'su misericordia sin fin', 'nos perdona nuestros errores', 'nos guía y nos protege así'] },
-      { name: 'CORO', lines: ['Su bondad es eterna', 'su amor nunca acabará', 'En el Señor confiamos', 'seguro estaremos siempre'] }
-    ]
-  },
-  {
-    id: 6,
-    title: 'Sublime Gracia',
-    author: 'John Newton',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Sublime gracia del Señor', 'que a un infeliz salvó', 'fui ciego mas hoy veo', 'por Cristo me transformó'] },
-      { name: 'VERSO 2', lines: ['Su gracia me enseñó a temer', 'mis dudas disipó', 'cuán precioso es creer', 'en Cristo que me rescató'] }
-    ]
-  },
-  {
-    id: 7,
-    title: 'Hay Poder en Jesús',
-    author: 'Lewis E. Jones',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Hay poder, poder, poder en Jesús', 'hay poder, poder en su sangre', 'que limpia toda mancha, rompe las cadenas', 'ven a Jesús, Él te libertará'] },
-      { name: 'CORO', lines: ['Poder, poder hay en Jesús', 'Poder divino, poder de salvación', 'Acepta hoy su gracia infinita', 'Vive en victoria y liberación'] }
-    ]
-  },
-  {
-    id: 8,
-    title: 'Dios Es Bueno',
-    author: '',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Dios es bueno, dios es bueno', 'dios es bueno todo el tiempo', 'y todo el tiempo dios es bueno', 'Él es nuestro Dios, nuestro amor'] },
-      { name: 'CORO', lines: ['Bueno, bueno es el Señor', 'Su fidelidad sin comparación', 'En todo momento, en toda situación', 'Confiamos en su protección'] }
-    ]
-  },
-  {
-    id: 9,
-    title: 'Tuyo Soy Jesús',
-    author: '',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Tuyo soy Jesús, mi vida entera', 'es tuya, Señor', 'mi corazón te pertenece', 'de ti soy cautivo de amor'] },
-      { name: 'CORO', lines: ['Tuyo soy, completamente tuyo', 'mi vida está en tus manos', 'Tuyo soy, por toda la eternidad', 'seré tuyo en todos los tiempos'] }
-    ]
-  },
-  {
-    id: 10,
-    title: 'Cristo Me Ama',
-    author: 'Anna B. Warner',
-    copyright: '',
-    sections: [
-      { name: 'VERSO 1', lines: ['Cristo me ama, me ama a mí', 'la Biblia me lo dice así', 'soy débil, pero Él es fuerte', 'Cristo me ama, sí, sí, sí'] },
-      { name: 'CORO', lines: ['Cristo me ama', 'Cristo me ama', 'Cristo me ama', 'me lo dice la Biblia'] }
-    ]
-  }
-];
+const POSITIONS = {
+  'Proyección': { color: '#4A90E2', icon: '🎬' },
+  'Luces': { color: '#7B68EE', icon: '💡' },
+  'Transmisión': { color: '#FF6B6B', icon: '📡' },
+  'Foto/Video': { color: '#F5A623', icon: '📸' }
+}
 
-const CHECKLIST_ITEMS = [
-  'Revisar conexión de audio y micrófono',
-  'Cargar tema gráfico de EasyWorship',
-  'Verificar presentaciones PDF',
-  'Comprobar imágenes del servicio',
-  'Prueba de diapositivas de canciones',
-  'Sincronizar hora con reloj de iglesia',
-  'Tener lista la primera canción',
-  'Revisar versículos en el formato correcto',
-  'Confirmación de hora de inicio',
-  'Prueba técnica general'
-];
+const DEFAULT_TASKS = {
+  'Proyección': [
+    'Abrir EasyWorship',
+    'Cargar orden de servicio',
+    'Verificar versículos',
+    'Revisar imágenes/anuncios',
+    'Conectar proyector',
+    'Test de audio/video'
+  ],
+  'Luces': [
+    'Revisar controles de luces',
+    'Test: encender/apagar secuencias',
+    'Preparar ambiente para alabanza',
+    'Preparar ambiente para predica'
+  ],
+  'Transmisión': [
+    'Revisar cámara y micrófono',
+    'Test de conexión internet',
+    'Hacer live test (5 min)',
+    'Esperar a que empiece el servicio',
+    'Iniciar transmisión en vivo',
+    'Monitorear conexión durante servicio',
+    'Terminar transmisión'
+  ],
+  'Foto/Video': [
+    'Revisar cámaras/baterías',
+    'Llegar 15 min antes',
+    'Captar entrada de pastor/adoración',
+    'Captar momento especial',
+    'Captar salida',
+    'Subir video para aprobación'
+  ]
+}
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('generator');
-  const [songs, setSongs] = useState([]);
-  const [checklist, setChecklist] = useState({});
-  const [newSongTitle, setNewSongTitle] = useState('');
-  const [newSongAuthor, setNewSongAuthor] = useState('');
-  const [newSongLyrics, setNewSongLyrics] = useState('');
+  const [currentUser, setCurrentUser] = useState(null)
+  const [userMode, setUserMode] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [weeklyAssignments, setWeeklyAssignments] = useState([])
+  const [contentAssignments, setContentAssignments] = useState([])
+  const [todayDate, setTodayDate] = useState(new Date())
 
-  // Quick mode (paste raw lyrics)
-  const [songMode, setSongMode] = useState('quick'); // 'quick' o 'manual'
-  const [quickLyrics, setQuickLyrics] = useState('');
-  const [previewSections, setPreviewSections] = useState(null);
-  const [previewTitle, setPreviewTitle] = useState('');
-  const [previewAuthor, setPreviewAuthor] = useState('');
-
-  // Service generator state
-  const [serviceDate, setServiceDate] = useState('');
-  const [preparerName, setPreparerName] = useState('');
-  const [selectedSongs, setSelectedSongs] = useState([]);
-  const [verses, setVerses] = useState([]);
-  const [imageFolder, setImageFolder] = useState('');
-  const [images, setImages] = useState([]);
-
-  // Load songs from localStorage on mount
   useEffect(() => {
-    const savedSongs = localStorage.getItem('ew_songs');
-    if (savedSongs) {
-      setSongs(JSON.parse(savedSongs));
-    } else {
-      setSongs(INITIAL_SONGS);
-      localStorage.setItem('ew_songs', JSON.stringify(INITIAL_SONGS));
-    }
-  }, []);
+    loadData()
+    const timer = setInterval(() => setTodayDate(new Date()), 60000)
 
-  // Load checklist from Supabase and subscribe to real-time changes
-  useEffect(() => {
-    const loadChecklist = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('checklist_estado')
-          .select('items')
-          .eq('id', 1)
-          .single();
-
-        if (error) {
-          console.error('Error loading checklist:', error);
-          return;
-        }
-
-        if (data && data.items) {
-          setChecklist(data.items);
-        } else {
-          const initial = {};
-          CHECKLIST_ITEMS.forEach(item => {
-            initial[item] = false;
-          });
-          setChecklist(initial);
-        }
-      } catch (err) {
-        console.error('Error:', err);
-      }
-    };
-
-    loadChecklist();
-
-    // Subscribe to real-time changes
-    const subscription = supabase
-      .channel('checklist_changes')
+    const channel = supabase
+      .channel('weekly_assignments_changes')
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
-          table: 'checklist_estado',
-          filter: 'id=eq.1'
+          table: 'weekly_assignments'
         },
         (payload) => {
-          if (payload.new && payload.new.items) {
-            setChecklist(payload.new.items);
-          }
+          loadData()
         }
       )
-      .subscribe();
+      .subscribe()
 
     return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+      clearInterval(timer)
+      channel.unsubscribe()
+    }
+  }, [])
 
-  // Save songs to localStorage
-  const saveSongs = (updatedSongs) => {
-    setSongs(updatedSongs);
-    localStorage.setItem('ew_songs', JSON.stringify(updatedSongs));
-  };
-
-  // Save checklist to Supabase
-  const saveChecklist = async (updatedChecklist) => {
-    setChecklist(updatedChecklist);
-
+  const loadData = async () => {
     try {
-      const { error } = await supabase
-        .from('checklist_estado')
-        .upsert(
-          {
-            id: 1,
-            items: updatedChecklist,
-            updated_by: preparerName || 'Anónimo'
-          },
-          { onConflict: 'id' }
-        );
+      const { data: assignments } = await supabase
+        .from('weekly_assignments')
+        .select('*')
+        .order('week_date', { ascending: false })
+        .limit(100)
 
-      if (error) {
-        console.error('Error saving checklist:', error);
-      }
-    } catch (err) {
-      console.error('Error:', err);
+      const { data: content } = await supabase
+        .from('content_assignments')
+        .select('*')
+        .order('date', { ascending: false })
+        .limit(100)
+
+      setWeeklyAssignments(assignments || [])
+      setContentAssignments(content || [])
+    } catch (error) {
+      console.error('Error cargando datos:', error)
     }
-  };
+  }
 
-  // Parse lyrics into slides (max 4 lines per slide)
-  const parseLyricsToSlides = (lyrics) => {
-    const lines = lyrics.split('\n').map(line => line.trim()).filter(line => line);
-    const sections = [];
-    let currentSection = null;
-    let currentLines = [];
-
-    for (const line of lines) {
-      if (line.match(/^\[.*\]$/)) {
-        if (currentSection && currentLines.length > 0) {
-          sections.push({ name: currentSection, lines: [...currentLines] });
-        }
-        currentSection = line.replace(/[\[\]]/g, '');
-        currentLines = [];
-      } else if (line === '') {
-        if (currentLines.length > 0 && currentLines.length < 4) {
-          currentLines.push('');
-        }
-      } else {
-        currentLines.push(line);
-        if (currentLines.length === 4) {
-          sections.push({ name: currentSection || 'VERSO', lines: [...currentLines] });
-          currentLines = [];
-        }
-      }
-    }
-
-    if (currentLines.length > 0) {
-      sections.push({ name: currentSection || 'VERSO', lines: currentLines });
-    }
-
-    return sections;
-  };
-
-  // Parse quick mode lyrics (auto-detect title and sections)
-  const parseQuickLyrics = (rawLyrics) => {
-    const allLines = rawLyrics.split('\n').map(line => line.trim());
-
-    // Auto-detect title (first short line)
-    let title = '';
-    let startIdx = 0;
-    if (allLines.length > 0 && allLines[0].length < 50 && !allLines[0].match(/^\[.*\]$/)) {
-      title = allLines[0];
-      startIdx = 1;
-    }
-
-    const contentLines = allLines.slice(startIdx).filter((line, i, arr) => {
-      // Keep non-empty lines and handle blank lines as section separators
-      return line || (i > 0 && i < arr.length - 1);
-    });
-
-    const sections = [];
-    let currentSection = null;
-    let currentLines = [];
-    let versoCount = 0;
-    let chorusLines = [];
-
-    for (const line of contentLines) {
-      // Detect bracketed sections
-      if (line.match(/^\[.*\]$/)) {
-        if (currentSection && currentLines.length > 0) {
-          sections.push({ name: currentSection, lines: [...currentLines] });
-        }
-        currentSection = line.replace(/[\[\]]/g, '').toUpperCase();
-        currentLines = [];
-      }
-      // Blank line = section separator
-      else if (line === '') {
-        if (currentLines.length > 0) {
-          // Check if this looks like a chorus (repeated pattern)
-          const lineStr = currentLines.join(' ').toLowerCase();
-          if (chorusLines.length === 0 || lineStr === chorusLines.join(' ').toLowerCase()) {
-            if (chorusLines.length === 0) chorusLines = [...currentLines];
-            currentSection = 'CORO';
-          } else if (!currentSection) {
-            versoCount++;
-            currentSection = `VERSO ${versoCount}`;
-          }
-          sections.push({ name: currentSection, lines: [...currentLines] });
-          currentLines = [];
-        }
-      }
-      // Regular line
-      else {
-        currentLines.push(line);
-        if (currentLines.length === 4) {
-          if (!currentSection) {
-            versoCount++;
-            currentSection = `VERSO ${versoCount}`;
-          }
-          sections.push({ name: currentSection, lines: [...currentLines] });
-          currentLines = [];
-          currentSection = null;
-        }
-      }
-    }
-
-    if (currentLines.length > 0) {
-      if (!currentSection) {
-        versoCount++;
-        currentSection = `VERSO ${versoCount}`;
-      }
-      sections.push({ name: currentSection, lines: currentLines });
-    }
-
-    return { title: title || 'Sin título', sections };
-  };
-
-  // Process quick mode lyrics and show preview
-  const handleProcessQuickLyrics = () => {
-    if (!quickLyrics.trim()) {
-      alert('Por favor pega la letra de la canción');
-      return;
-    }
-
-    const { title, sections } = parseQuickLyrics(quickLyrics);
-    setPreviewSections(sections);
-    setPreviewTitle(title);
-    setPreviewAuthor('');
-  };
-
-  // Save song from quick mode preview
-  const handleSaveQuickSong = () => {
-    if (!previewTitle.trim() || !previewSections || previewSections.length === 0) {
-      alert('Por favor procesa la letra primero');
-      return;
-    }
-
-    const newSong = {
-      id: Date.now(),
-      title: previewTitle,
-      author: previewAuthor,
-      copyright: '',
-      sections: previewSections
-    };
-
-    const updatedSongs = [...songs, newSong];
-    saveSongs(updatedSongs);
-
-    setQuickLyrics('');
-    setPreviewSections(null);
-    setPreviewTitle('');
-    setPreviewAuthor('');
-    alert('Canción guardada correctamente');
-  };
-
-  // Add new song
-  const handleAddSong = () => {
-    if (!newSongTitle.trim() || !newSongLyrics.trim()) {
-      alert('Por favor completa título y letra');
-      return;
-    }
-
-    const sections = parseLyricsToSlides(newSongLyrics);
-    const newSong = {
-      id: Date.now(),
-      title: newSongTitle,
-      author: newSongAuthor,
-      copyright: '',
-      sections
-    };
-
-    const updatedSongs = [...songs, newSong];
-    saveSongs(updatedSongs);
-
-    setNewSongTitle('');
-    setNewSongAuthor('');
-    setNewSongLyrics('');
-    alert('Canción agregada correctamente');
-  };
-
-  // Delete song
-  const handleDeleteSong = (id) => {
-    if (confirm('¿Eliminar esta canción?')) {
-      const updated = songs.filter(song => song.id !== id);
-      saveSongs(updated);
-    }
-  };
-
-  // Generate service file
-  const generateServiceFile = () => {
-    if (!serviceDate || !preparerName || selectedSongs.length === 0) {
-      alert('Por favor completa fecha, nombre del preparador y selecciona canciones');
-      return;
-    }
-
-    const selectedSongTitles = selectedSongs.map(id => {
-      const song = songs.find(s => s.id === parseInt(id));
-      return song ? song.title : '';
-    });
-
-    let content = `# Servicio del domingo\n`;
-    content += `# Preparado por: ${preparerName}\n\n`;
-    content += `FECHA: ${serviceDate}\n\n`;
-
-    if (imageFolder.trim()) {
-      content += `IMAGEN_CARPETA: ${imageFolder}\n\n`;
-    }
-
-    content += `# --- Canciones ---\n`;
-    selectedSongTitles.forEach(title => {
-      if (title) content += `CANCION: ${title}\n`;
-    });
-
-    if (verses.length > 0) {
-      content += `\n# --- Versículos ---\n`;
-      verses.forEach(verse => {
-        if (verse.trim()) content += `VERSICULO: ${verse}\n`;
-      });
-    }
-
-    if (images.length > 0) {
-      content += `\n# --- Imágenes ---\n`;
-      images.forEach(img => {
-        if (img.trim()) content += `IMAGEN: ${img}\n`;
-      });
-    }
-
-    // Download file
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-    element.setAttribute('download', `servicio_${serviceDate}.txt`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-
-    alert('Archivo descargado correctamente');
-  };
-
-  // Toggle checklist item
-  const toggleChecklistItem = (item) => {
-    const updated = { ...checklist };
-    updated[item] = !updated[item];
-    saveChecklist(updated);
-  };
-
-  // Reset checklist
-  const resetChecklist = () => {
-    const updated = {};
-    CHECKLIST_ITEMS.forEach(item => {
-      updated[item] = false;
-    });
-    saveChecklist(updated);
-  };
-
-  const addVerse = () => {
-    setVerses([...verses, '']);
-  };
-
-  const updateVerse = (index, value) => {
-    const updated = [...verses];
-    updated[index] = value;
-    setVerses(updated);
-  };
-
-  const removeVerse = (index) => {
-    setVerses(verses.filter((_, i) => i !== index));
-  };
-
-  const addImage = () => {
-    setImages([...images, '']);
-  };
-
-  const updateImage = (index, value) => {
-    const updated = [...images];
-    updated[index] = value;
-    setImages(updated);
-  };
-
-  const removeImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
-
-  const toggleSongSelection = (id) => {
-    const stringId = String(id);
-    if (selectedSongs.includes(stringId)) {
-      setSelectedSongs(selectedSongs.filter(sId => sId !== stringId));
+  const handleSelectUser = (user) => {
+    if (user === 'Gabriela') {
+      setShowPassword(true)
     } else {
-      setSelectedSongs([...selectedSongs, stringId]);
+      setCurrentUser(user)
+      setUserMode('Puesto')
     }
-  };
+  }
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === GABRIELA_PASSWORD) {
+      setCurrentUser('Gabriela')
+      setShowPassword(false)
+      setPasswordInput('')
+      setUserMode(null)
+    } else {
+      alert('Contraseña incorrecta')
+      setPasswordInput('')
+    }
+  }
+
+  if (!currentUser) {
+    if (showPassword) {
+      return <PasswordScreen onBack={() => setShowPassword(false)} onSubmit={handlePasswordSubmit} password={passwordInput} setPassword={setPasswordInput} />
+    }
+    return <LoginScreen users={USERS} onSelectUser={handleSelectUser} />
+  }
+
+  if (currentUser === 'Gabriela' && !userMode) {
+    return <ModeSelector onSelectMode={(mode) => setUserMode(mode)} />
+  }
+
+  if (userMode === 'Jefa') {
+    return (
+      <AdminPanel
+        weeklyAssignments={weeklyAssignments}
+        contentAssignments={contentAssignments}
+        onAddAssignment={async (data) => {
+          const { error } = await supabase.from('weekly_assignments').insert([data])
+          if (!error) {
+            await loadData()
+          }
+        }}
+        onAddContentAssignment={async (data) => {
+          const { error } = await supabase.from('content_assignments').insert([data])
+          if (!error) {
+            await loadData()
+          }
+        }}
+        users={USERS}
+        positions={Object.keys(POSITIONS)}
+        onLogout={() => {
+          setCurrentUser(null)
+          setUserMode(null)
+        }}
+      />
+    )
+  }
+
+  const sunday = getSundayOfWeek(todayDate)
+  const todayAssignment = weeklyAssignments.find(a =>
+    new Date(a.week_date).toDateString() === sunday.toDateString() &&
+    a.person_name === currentUser
+  )
+
+  const nextSunday = new Date(todayDate)
+  nextSunday.setDate(nextSunday.getDate() + 7)
+  const nextAssignment = weeklyAssignments.find(a =>
+    new Date(a.week_date).toDateString() === getSundayOfWeek(nextSunday).toDateString() &&
+    a.person_name === currentUser
+  )
+
+  const contentAssign = contentAssignments.filter(a => a.person_name === currentUser)
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <div className="logo-container">
-            <img src="/logo-ebs.png" alt="EBS La Vega" className="logo" />
-          </div>
-          <div className="header-text">
-            <h1>Domingo Helper</h1>
-            <p>Prepara tu servicio con EasyWorship</p>
-          </div>
+    <div className="user-app">
+      <div className="user-header">
+        <h1>EBS La Vega</h1>
+        <div className="user-top-info">
+          <span className="user-badge">{currentUser}</span>
+          {currentUser === 'Gabriela' && (
+            <button onClick={() => setUserMode(null)} className="mode-btn">
+              Cambiar Modo
+            </button>
+          )}
+          <button onClick={() => {
+            setCurrentUser(null)
+            setUserMode(null)
+          }} className="logout-btn">
+            Salir
+          </button>
         </div>
-      </header>
+      </div>
 
-      <nav className="app-nav">
-        <button
-          className={`nav-btn ${activeTab === 'generator' ? 'active' : ''}`}
-          onClick={() => setActiveTab('generator')}
-        >
-          <span className="nav-icon">📋</span>
-          <span>Generador</span>
-        </button>
-        <button
-          className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
-          onClick={() => setActiveTab('library')}
-        >
-          <span className="nav-icon">🎼</span>
-          <span>Biblioteca</span>
-        </button>
-        <button
-          className={`nav-btn ${activeTab === 'checklist' ? 'active' : ''}`}
-          onClick={() => setActiveTab('checklist')}
-        >
-          <span className="nav-icon">✅</span>
-          <span>Checklist</span>
-        </button>
-      </nav>
-
-      <main className="app-content">
-        {/* GENERATOR TAB */}
-        {activeTab === 'generator' && (
-          <section className="tab-section">
-            <h2>Generador del Servicio</h2>
-
-            <div className="form-group">
-              <label>Fecha del servicio</label>
-              <input
-                type="date"
-                value={serviceDate}
-                onChange={(e) => setServiceDate(e.target.value)}
-              />
+      <div className="user-content">
+        {todayAssignment ? (
+          <div className="today-card">
+            <div className="card-header">
+              <span className="position-icon">{POSITIONS[todayAssignment.position].icon}</span>
+              <h2>Hoy: {todayAssignment.position}</h2>
             </div>
+            <ChecklistView assignment={todayAssignment} defaultTasks={DEFAULT_TASKS[todayAssignment.position]} />
+          </div>
+        ) : (
+          <div className="today-card empty">
+            <p>No tienes asignación para hoy</p>
+          </div>
+        )}
 
-            <div className="form-group">
-              <label>Nombre del preparador</label>
-              <input
-                type="text"
-                value={preparerName}
-                onChange={(e) => setPreparerName(e.target.value)}
-                placeholder="Ej: Yuliot Astacio"
-              />
+        {nextAssignment && (
+          <div className="next-card">
+            <div className="next-header">
+              <span className="position-icon-small">{POSITIONS[nextAssignment.position].icon}</span>
+              <div>
+                <h3>Lo que te toca próximo</h3>
+                <p className="next-date">{new Date(nextAssignment.week_date).toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+              </div>
             </div>
+            <p className="next-position">{nextAssignment.position}</p>
+          </div>
+        )}
 
-            <div className="form-group">
-              <label>Carpeta de imágenes (ruta completa)</label>
-              <input
-                type="text"
-                value={imageFolder}
-                onChange={(e) => setImageFolder(e.target.value)}
-                placeholder="Ej: C:\Fotos\Domingo"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Canciones</label>
-              <div className="songs-list">
-                {songs.map(song => (
-                  <div key={song.id} className="song-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedSongs.includes(String(song.id))}
-                      onChange={() => toggleSongSelection(song.id)}
-                    />
-                    <div className="song-info">
-                      <strong>{song.title}</strong>
-                      {song.author && <span className="song-author">por {song.author}</span>}
-                    </div>
+        {contentAssign.length > 0 && (
+          <div className="content-section">
+            <h3>📹 Contenido a crear</h3>
+            <div className="content-list">
+              {contentAssign.map(c => (
+                <div key={c.id} className="content-item">
+                  <div className="content-info">
+                    <p className="content-title">{c.event_name}</p>
+                    <p className="content-date">{new Date(c.date).toLocaleDateString('es-ES')}</p>
                   </div>
+                  <span className={`status status-${c.status}`}>{c.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {todayAssignment?.position === 'Proyección' && (
+          <EasyWorshipGenerator assignment={todayAssignment} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function getSundayOfWeek(date) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day
+  return new Date(d.setDate(diff))
+}
+
+function LoginScreen({ users, onSelectUser }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="login-screen">
+      <div className="login-wrapper">
+        <div className="login-content">
+          <h1 className="app-title">EBS La Vega</h1>
+          <p className="app-subtitle">Servicio Dominical</p>
+
+          <div className="dropdown-container">
+            <button className="dropdown-toggle" onClick={() => setIsOpen(!isOpen)}>
+              <span>¿Quién eres?</span>
+              <span className="arrow">▼</span>
+            </button>
+
+            {isOpen && (
+              <div className="dropdown-menu">
+                {users.map(user => (
+                  <button
+                    key={user}
+                    className="dropdown-item"
+                    onClick={() => {
+                      onSelectUser(user)
+                      setIsOpen(false)
+                    }}
+                  >
+                    {user}
+                  </button>
                 ))}
               </div>
-            </div>
-
-            <div className="form-group">
-              <label>Versículos (uno por línea)</label>
-              {verses.map((verse, idx) => (
-                <div key={idx} className="verse-input-group">
-                  <input
-                    type="text"
-                    value={verse}
-                    onChange={(e) => updateVerse(idx, e.target.value)}
-                    placeholder="Ej: Juan 3:16 | Porque de tal manera amó Dios..."
-                  />
-                  <button onClick={() => removeVerse(idx)} className="btn-small">✕</button>
-                </div>
-              ))}
-              <button onClick={addVerse} className="btn-secondary">+ Agregar versículo</button>
-            </div>
-
-            <div className="form-group">
-              <label>Imágenes específicas (nombre de archivo)</label>
-              {images.map((img, idx) => (
-                <div key={idx} className="image-input-group">
-                  <input
-                    type="text"
-                    value={img}
-                    onChange={(e) => updateImage(idx, e.target.value)}
-                    placeholder="Ej: fondo_bienvenida.jpg"
-                  />
-                  <button onClick={() => removeImage(idx)} className="btn-small">✕</button>
-                </div>
-              ))}
-              <button onClick={addImage} className="btn-secondary">+ Agregar imagen</button>
-            </div>
-
-            <button onClick={generateServiceFile} className="btn-primary">
-              📥 Descargar servicio_domingo.txt
-            </button>
-          </section>
-        )}
-
-        {/* LIBRARY TAB */}
-        {activeTab === 'library' && (
-          <section className="tab-section">
-            <h2>Biblioteca de Canciones</h2>
-
-            <div className="library-container">
-              <div className="add-song-panel">
-                <h3>Agregar canción</h3>
-
-                {/* Mode selector */}
-                <div className="song-mode-selector">
-                  <button
-                    className={`mode-btn ${songMode === 'quick' ? 'active' : ''}`}
-                    onClick={() => setSongMode('quick')}
-                  >
-                    ⚡ Modo rápido
-                  </button>
-                  <button
-                    className={`mode-btn ${songMode === 'manual' ? 'active' : ''}`}
-                    onClick={() => setSongMode('manual')}
-                  >
-                    ✋ Modo avanzado
-                  </button>
-                </div>
-
-                {/* QUICK MODE */}
-                {songMode === 'quick' && (
-                  <>
-                    {!previewSections ? (
-                      <>
-                        <div className="form-group">
-                          <label>Pega la letra completa de la canción</label>
-                          <textarea
-                            value={quickLyrics}
-                            onChange={(e) => setQuickLyrics(e.target.value)}
-                            placeholder="Pega aquí la letra sin formato especial. La app detectará el título, secciones y dividirá en slides automáticamente."
-                            rows={12}
-                          />
-                        </div>
-                        <button onClick={handleProcessQuickLyrics} className="btn-primary">
-                          🔍 Procesar letra →
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="form-group">
-                          <label>Título (editable)</label>
-                          <input
-                            type="text"
-                            value={previewTitle}
-                            onChange={(e) => setPreviewTitle(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Autor (editable)</label>
-                          <input
-                            type="text"
-                            value={previewAuthor}
-                            onChange={(e) => setPreviewAuthor(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Preview de slides</label>
-                          <div className="preview-slides">
-                            {previewSections.map((section, idx) => (
-                              <div key={idx} className="preview-slide">
-                                <div className="slide-label">{section.name}</div>
-                                <div className="slide-content">
-                                  {section.lines.map((line, lineIdx) => (
-                                    <div key={lineIdx} className="slide-line">
-                                      {line || '—'}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="form-group" style={{ display: 'flex', gap: '10px' }}>
-                          <button onClick={handleSaveQuickSong} className="btn-primary" style={{ flex: 1 }}>
-                            ✅ Guardar en biblioteca
-                          </button>
-                          <button
-                            onClick={() => {
-                              setPreviewSections(null);
-                              setQuickLyrics('');
-                            }}
-                            className="btn-secondary"
-                            style={{ flex: 1 }}
-                          >
-                            ← Atrás
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-
-                {/* MANUAL MODE */}
-                {songMode === 'manual' && (
-                  <>
-                    <div className="form-group">
-                      <label>Título</label>
-                      <input
-                        type="text"
-                        value={newSongTitle}
-                        onChange={(e) => setNewSongTitle(e.target.value)}
-                        placeholder="Ej: Grandes Cosas"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Autor</label>
-                      <input
-                        type="text"
-                        value={newSongAuthor}
-                        onChange={(e) => setNewSongAuthor(e.target.value)}
-                        placeholder="Ej: Frances Jane Crosby"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Letra (usa [VERSO], [CORO], etc.)</label>
-                      <textarea
-                        value={newSongLyrics}
-                        onChange={(e) => setNewSongLyrics(e.target.value)}
-                        placeholder={`[VERSO 1]\nPrimera línea\nSegunda línea\nTercera línea\n\n[CORO]\nLínea del coro\nOtra línea`}
-                        rows={12}
-                      />
-                    </div>
-
-                    <button onClick={handleAddSong} className="btn-primary">
-                      🎵 Agregar canción
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="songs-library">
-                <h3>Canciones guardadas ({songs.length})</h3>
-                {songs.length === 0 ? (
-                  <p className="empty-state">No hay canciones guardadas</p>
-                ) : (
-                  songs.map(song => (
-                    <div key={song.id} className="song-card">
-                      <div className="song-header">
-                        <h4>{song.title}</h4>
-                        <button
-                          onClick={() => handleDeleteSong(song.id)}
-                          className="btn-delete"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                      {song.author && <p className="song-author">Autor: {song.author}</p>}
-                      <div className="song-sections">
-                        {song.sections.map((section, idx) => (
-                          <div key={idx} className="section">
-                            <strong>{section.name}</strong>
-                            <ul>
-                              {section.lines.map((line, lineIdx) => (
-                                <li key={lineIdx}>{line || '—'}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* CHECKLIST TAB */}
-        {activeTab === 'checklist' && (
-          <section className="tab-section">
-            <h2>Checklist del Domingo</h2>
-
-            <div className="checklist-actions">
-              <button onClick={resetChecklist} className="btn-secondary">
-                🔄 Resetear checklist
-              </button>
-            </div>
-
-            <div className="checklist">
-              {CHECKLIST_ITEMS.map((item, idx) => (
-                <label key={idx} className="checklist-item">
-                  <input
-                    type="checkbox"
-                    checked={checklist[item] || false}
-                    onChange={() => toggleChecklistItem(item)}
-                  />
-                  <span>{item}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="checklist-progress">
-              <p>
-                Progreso: {Object.values(checklist).filter(Boolean).length} de{' '}
-                {CHECKLIST_ITEMS.length}
-              </p>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: `${(Object.values(checklist).filter(Boolean).length / CHECKLIST_ITEMS.length) * 100}%`
-                  }}
-                />
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      <footer className="app-footer">
-        <p>EasyWorship Domingo Helper • Iglesia El Buen Samaritano, La Vega, RD</p>
-      </footer>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
+}
+
+function PasswordScreen({ onBack, onSubmit, password, setPassword }) {
+  return (
+    <div className="login-screen">
+      <div className="login-wrapper">
+        <div className="login-content">
+          <h1 className="app-title">Gabriela</h1>
+          <p className="app-subtitle">Ingresa tu contraseña</p>
+
+          <div className="password-form">
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && onSubmit()}
+              className="password-input"
+              autoFocus
+            />
+            <button onClick={onSubmit} className="password-submit">
+              Acceder
+            </button>
+            <button onClick={onBack} className="password-back">
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModeSelector({ onSelectMode }) {
+  return (
+    <div className="mode-screen">
+      <div className="mode-wrapper">
+        <h2>¿Qué vas a hacer?</h2>
+
+        <div className="modes-grid">
+          <button onClick={() => onSelectMode('Jefa')} className="mode-card jefa">
+            <span className="mode-emoji">👑</span>
+            <h3>Modo Jefa</h3>
+            <p>Administrar horarios y estadísticas</p>
+          </button>
+
+          <button onClick={() => onSelectMode('Puesto')} className="mode-card puesto">
+            <span className="mode-emoji">🎯</span>
+            <h3>Mi Puesto</h3>
+            <p>Ver mis tareas del domingo</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChecklistView({ assignment, defaultTasks }) {
+  const [completed, setCompleted] = useState(assignment?.tasks || [])
+
+  const toggleTask = (taskIndex) => {
+    setCompleted(prev => {
+      const newCompleted = [...prev]
+      newCompleted[taskIndex] = !newCompleted[taskIndex]
+      return newCompleted
+    })
+  }
+
+  const tasks = assignment?.tasks || defaultTasks
+
+  return (
+    <div className="checklist-container">
+      {tasks.map((task, idx) => (
+        <label key={idx} className="check-item">
+          <input
+            type="checkbox"
+            checked={completed[idx] || false}
+            onChange={() => toggleTask(idx)}
+          />
+          <span className="check-text">{task}</span>
+        </label>
+      ))}
+    </div>
+  )
+}
+
+function EasyWorshipGenerator({ assignment }) {
+  const [songs, setSongs] = useState([])
+  const [verses, setVerses] = useState([])
+  const [newSong, setNewSong] = useState('')
+  const [newVerse, setNewVerse] = useState('')
+
+  const exportToEWSX = () => {
+    const schedule = {
+      date: assignment.week_date,
+      generatedBy: assignment.person_name,
+      songs: songs,
+      verses: verses,
+      timestamp: new Date().toISOString()
+    }
+
+    const dataStr = JSON.stringify(schedule, null, 2)
+    const element = document.createElement('a')
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(dataStr))
+    element.setAttribute('download', `schedule_${assignment.week_date}.ewsx`)
+    element.style.display = 'none'
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+  }
+
+  return (
+    <div className="generator-card">
+      <h3>🎬 Generador de EasyWorship</h3>
+
+      <div className="gen-section">
+        <h4>Canciones</h4>
+        <div className="input-row">
+          <input
+            type="text"
+            placeholder="Nombre de canción"
+            value={newSong}
+            onChange={(e) => setNewSong(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && newSong && (setSongs([...songs, newSong]), setNewSong(''))}
+          />
+          <button onClick={() => {
+            if (newSong) {
+              setSongs([...songs, newSong])
+              setNewSong('')
+            }
+          }}>Agregar</button>
+        </div>
+        <div className="items-display">
+          {songs.map((song, idx) => (
+            <span key={idx} className="item-tag">
+              {song}
+              <button onClick={() => setSongs(songs.filter((_, i) => i !== idx))}>×</button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="gen-section">
+        <h4>Versículos</h4>
+        <div className="input-row">
+          <input
+            type="text"
+            placeholder="Referencia | Texto"
+            value={newVerse}
+            onChange={(e) => setNewVerse(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && newVerse && (setVerses([...verses, newVerse]), setNewVerse(''))}
+          />
+          <button onClick={() => {
+            if (newVerse) {
+              setVerses([...verses, newVerse])
+              setNewVerse('')
+            }
+          }}>Agregar</button>
+        </div>
+        <div className="items-display">
+          {verses.map((verse, idx) => (
+            <span key={idx} className="item-tag">
+              {verse}
+              <button onClick={() => setVerses(verses.filter((_, i) => i !== idx))}>×</button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={exportToEWSX} className="export-btn">📥 Descargar Schedule</button>
+    </div>
+  )
+}
+
+function AdminPanel({ weeklyAssignments, contentAssignments, onAddAssignment, users, positions, onLogout }) {
+  const [newAssignment, setNewAssignment] = useState({ person_name: '', position: '', week_date: '' })
+  const [warning, setWarning] = useState('')
+  const [selectedDay, setSelectedDay] = useState(null)
+
+  const handleAddAssignment = async () => {
+    const existing = weeklyAssignments.find(a =>
+      a.person_name === newAssignment.person_name &&
+      new Date(a.week_date).toDateString() === new Date(newAssignment.week_date).toDateString()
+    )
+
+    if (existing) {
+      setWarning(`⚠️ ${newAssignment.person_name} ya está asignado para ${existing.position} ese día. ¿Continuar?`)
+      return
+    }
+
+    await onAddAssignment({
+      person_name: newAssignment.person_name,
+      position: newAssignment.position,
+      week_date: newAssignment.week_date,
+      tasks: DEFAULT_TASKS[newAssignment.position]
+    })
+
+    setNewAssignment({ person_name: '', position: '', week_date: '' })
+    setWarning('')
+  }
+
+  const groupedByDate = {}
+  weeklyAssignments.forEach(a => {
+    const dateKey = new Date(a.week_date).toISOString().split('T')[0]
+    if (!groupedByDate[dateKey]) {
+      groupedByDate[dateKey] = []
+    }
+    groupedByDate[dateKey].push(a)
+  })
+
+  const sortedDates = Object.keys(groupedByDate).sort().reverse()
+
+  return (
+    <div className="admin-app">
+      <div className="admin-header">
+        <h1>👑 Panel de Jefa</h1>
+        <button onClick={onLogout} className="logout-btn">Salir</button>
+      </div>
+
+      <div className="admin-content">
+        <section className="admin-card">
+          <h2>Crear Horario Semanal</h2>
+          {warning && <div className="warning-alert">{warning}</div>}
+
+          <div className="form-row">
+            <select value={newAssignment.person_name} onChange={(e) => setNewAssignment({...newAssignment, person_name: e.target.value})} className="form-select">
+              <option value="">Selecciona persona</option>
+              {users.map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+
+            <select value={newAssignment.position} onChange={(e) => setNewAssignment({...newAssignment, position: e.target.value})} className="form-select">
+              <option value="">Selecciona puesto</option>
+              {positions.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+
+            <div className="date-input-wrapper">
+              <span className="calendar-icon">📅</span>
+              <input type="date" value={newAssignment.week_date} onChange={(e) => setNewAssignment({...newAssignment, week_date: e.target.value})} className="form-input date-input" />
+            </div>
+
+            <button onClick={handleAddAssignment} className="form-submit">Agregar</button>
+          </div>
+        </section>
+
+        <section className="admin-card">
+          <h2>Horarios Actuales</h2>
+          <div className="schedule-days">
+            {sortedDates.map(dateKey => {
+              const assignments = groupedByDate[dateKey]
+              const dateObj = new Date(dateKey)
+              const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'long' })
+              const dayDate = dateObj.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+
+              return (
+                <div key={dateKey} className="day-card">
+                  <button
+                    className="day-header"
+                    onClick={() => setSelectedDay(selectedDay === dateKey ? null : dateKey)}
+                  >
+                    <div className="day-info">
+                      <p className="day-name">{dayName}</p>
+                      <p className="day-date">{dayDate}</p>
+                    </div>
+                    <div className="day-summary">
+                      <p className="people-count">{assignments.length} personas</p>
+                      <span className="expand-icon">{selectedDay === dateKey ? '▲' : '▼'}</span>
+                    </div>
+                  </button>
+
+                  {selectedDay === dateKey && (
+                    <div className="day-rundown">
+                      {Object.keys(POSITIONS).map(position => {
+                        const peopleInPosition = assignments.filter(a => a.position === position)
+                        return (
+                          <div key={position} className="position-section">
+                            <div className="position-header" style={{ backgroundColor: POSITIONS[position].color }}>
+                              <span className="position-icon">{POSITIONS[position].icon}</span>
+                              <h4>{position}</h4>
+                            </div>
+                            <div className="people-list">
+                              {peopleInPosition.length > 0 ? (
+                                peopleInPosition.map((a, idx) => (
+                                  <div key={idx} className="person-item">
+                                    <span className="person-name">{a.person_name}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="no-assignment">No asignado</p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      </div>
+    </div>
+  )
 }
