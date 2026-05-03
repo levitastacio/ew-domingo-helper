@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { supabase } from './supabase'
+import { database } from './firebase'
+import { ref, onValue, push } from 'firebase/database'
 
 if (typeof window !== 'undefined') {
-  console.log('[App] Supabase client initialized')
+  console.log('[App] Firebase initialized')
 }
 
 const USERS = ['Gabriela', 'Christopher', 'Magdy', 'Elena', 'Maryori', 'Rosanny', 'Saul', 'Jason', 'Levit']
@@ -60,50 +61,30 @@ export default function App() {
   const [todayDate, setTodayDate] = useState(new Date())
 
   useEffect(() => {
-    loadData()
     const timer = setInterval(() => setTodayDate(new Date()), 60000)
 
-    const channel = supabase
-      .channel('weekly_assignments_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'weekly_assignments'
-        },
-        (payload) => {
-          loadData()
-        }
-      )
-      .subscribe()
+    const assignmentsRef = ref(database, 'weekly_assignments')
+    const contentRef = ref(database, 'content_assignments')
+
+    const unsubscribeAssignments = onValue(assignmentsRef, (snapshot) => {
+      const data = snapshot.val()
+      const assignments = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : []
+      setWeeklyAssignments(assignments.sort((a, b) => new Date(b.week_date) - new Date(a.week_date)))
+    })
+
+    const unsubscribeContent = onValue(contentRef, (snapshot) => {
+      const data = snapshot.val()
+      const content = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : []
+      setContentAssignments(content.sort((a, b) => new Date(b.date) - new Date(a.date)))
+    })
 
     return () => {
       clearInterval(timer)
-      channel.unsubscribe()
+      unsubscribeAssignments()
+      unsubscribeContent()
     }
   }, [])
 
-  const loadData = async () => {
-    try {
-      const { data: assignments } = await supabase
-        .from('weekly_assignments')
-        .select('*')
-        .order('week_date', { ascending: false })
-        .limit(100)
-
-      const { data: content } = await supabase
-        .from('content_assignments')
-        .select('*')
-        .order('date', { ascending: false })
-        .limit(100)
-
-      setWeeklyAssignments(assignments || [])
-      setContentAssignments(content || [])
-    } catch (error) {
-      console.error('Error cargando datos:', error)
-    }
-  }
 
   const handleSelectUser = (user) => {
     if (user === 'Gabriela') {
@@ -144,14 +125,8 @@ export default function App() {
         contentAssignments={contentAssignments}
         onAddAssignment={async (data) => {
           try {
-            const { error } = await supabase.from('weekly_assignments').insert([data])
-            if (error) {
-              console.error('Error inserting:', error)
-              alert('Error al guardar: ' + error.message)
-            } else {
-              await new Promise(r => setTimeout(r, 500))
-              await loadData()
-            }
+            await push(ref(database, 'weekly_assignments'), data)
+            console.log('Assignment saved successfully')
           } catch (err) {
             console.error('Exception:', err)
             alert('Error: ' + err.message)
@@ -159,14 +134,8 @@ export default function App() {
         }}
         onAddContentAssignment={async (data) => {
           try {
-            const { error } = await supabase.from('content_assignments').insert([data])
-            if (error) {
-              console.error('Error inserting content:', error)
-              alert('Error al guardar: ' + error.message)
-            } else {
-              await new Promise(r => setTimeout(r, 500))
-              await loadData()
-            }
+            await push(ref(database, 'content_assignments'), data)
+            console.log('Content assignment saved successfully')
           } catch (err) {
             console.error('Exception:', err)
             alert('Error: ' + err.message)
