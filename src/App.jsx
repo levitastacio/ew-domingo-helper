@@ -209,11 +209,11 @@ export default function App() {
             <div className="next-header">
               <span className="position-icon-small">{POSITIONS[nextAssignment.position].icon}</span>
               <div>
-                <h3>Lo que te toca próximo</h3>
+                <h3 style={{color: '#fff'}}>Lo que te toca próximo</h3>
                 <p className="next-date">{new Date(nextAssignment.week_date).toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
-            <p className="next-position">{nextAssignment.position}</p>
+            <p className="next-position" style={{color: '#fff', fontWeight: 'bold', fontSize: '18px'}}>{nextAssignment.position}</p>
           </div>
         )}
 
