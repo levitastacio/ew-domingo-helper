@@ -139,15 +139,33 @@ export default function App() {
         weeklyAssignments={weeklyAssignments}
         contentAssignments={contentAssignments}
         onAddAssignment={async (data) => {
-          const { error } = await supabase.from('weekly_assignments').insert([data])
-          if (!error) {
-            await loadData()
+          try {
+            const { error } = await supabase.from('weekly_assignments').insert([data])
+            if (error) {
+              console.error('Error inserting:', error)
+              alert('Error al guardar: ' + error.message)
+            } else {
+              await new Promise(r => setTimeout(r, 500))
+              await loadData()
+            }
+          } catch (err) {
+            console.error('Exception:', err)
+            alert('Error: ' + err.message)
           }
         }}
         onAddContentAssignment={async (data) => {
-          const { error } = await supabase.from('content_assignments').insert([data])
-          if (!error) {
-            await loadData()
+          try {
+            const { error } = await supabase.from('content_assignments').insert([data])
+            if (error) {
+              console.error('Error inserting content:', error)
+              alert('Error al guardar: ' + error.message)
+            } else {
+              await new Promise(r => setTimeout(r, 500))
+              await loadData()
+            }
+          } catch (err) {
+            console.error('Exception:', err)
+            alert('Error: ' + err.message)
           }
         }}
         users={USERS}
@@ -550,13 +568,18 @@ function AdminPanel({ weeklyAssignments, contentAssignments, onAddAssignment, us
         </section>
 
         <section className="admin-card">
-          <h2>Horarios Actuales</h2>
+          <h2>Horarios Guardados</h2>
+          {localAssignments.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+              No hay horarios creados aún. Crea el primero arriba.
+            </p>
+          ) : (
           <div className="schedule-days">
             {sortedDates.map(dateKey => {
               const assignments = groupedByDate[dateKey]
               const dateObj = new Date(dateKey)
               const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'long' })
-              const dayDate = dateObj.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+              const dayDate = dateObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
 
               return (
                 <div key={dateKey} className="day-card">
@@ -604,6 +627,7 @@ function AdminPanel({ weeklyAssignments, contentAssignments, onAddAssignment, us
               )
             })}
           </div>
+          )}
         </section>
       </div>
     </div>
