@@ -470,9 +470,19 @@ function AdminPanel({ weeklyAssignments, contentAssignments, onAddAssignment, us
   const [newAssignment, setNewAssignment] = useState({ person_name: '', position: '', week_date: '' })
   const [warning, setWarning] = useState('')
   const [selectedDay, setSelectedDay] = useState(null)
+  const [localAssignments, setLocalAssignments] = useState(weeklyAssignments)
+
+  useEffect(() => {
+    setLocalAssignments(weeklyAssignments)
+  }, [weeklyAssignments])
 
   const handleAddAssignment = async () => {
-    const existing = weeklyAssignments.find(a =>
+    if (!newAssignment.person_name || !newAssignment.position || !newAssignment.week_date) {
+      alert('Por favor completa todos los campos')
+      return
+    }
+
+    const existing = localAssignments.find(a =>
       a.person_name === newAssignment.person_name &&
       new Date(a.week_date).toDateString() === new Date(newAssignment.week_date).toDateString()
     )
@@ -482,19 +492,22 @@ function AdminPanel({ weeklyAssignments, contentAssignments, onAddAssignment, us
       return
     }
 
-    await onAddAssignment({
+    const newData = {
       person_name: newAssignment.person_name,
       position: newAssignment.position,
       week_date: newAssignment.week_date,
       tasks: DEFAULT_TASKS[newAssignment.position]
-    })
+    }
+
+    setLocalAssignments([...localAssignments, newData])
+    await onAddAssignment(newData)
 
     setNewAssignment({ person_name: '', position: '', week_date: '' })
     setWarning('')
   }
 
   const groupedByDate = {}
-  weeklyAssignments.forEach(a => {
+  localAssignments.forEach(a => {
     const dateKey = new Date(a.week_date).toISOString().split('T')[0]
     if (!groupedByDate[dateKey]) {
       groupedByDate[dateKey] = []
