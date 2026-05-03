@@ -156,15 +156,11 @@ export default function App() {
   const userAssignments = weeklyAssignments.filter(a => a.person_name === currentUser)
 
   const todayAssignment = userAssignments.find(a => {
-    const assignDate = new Date(a.week_date)
-    const today = new Date(todayDate)
-    return assignDate.toDateString() === today.toDateString()
+    return a.week_date === todayDate.toISOString().split('T')[0]
   })
 
   const nextAssignment = userAssignments.find(a => {
-    const assignDate = new Date(a.week_date)
-    const today = new Date(todayDate)
-    return assignDate > today
+    return a.week_date > todayDate.toISOString().split('T')[0]
   })
 
   const contentAssign = contentAssignments.filter(a => a.person_name === currentUser)
